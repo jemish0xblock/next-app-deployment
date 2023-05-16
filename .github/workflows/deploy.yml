@@ -74,8 +74,10 @@ jobs:
         with:
           SCRIPT_AFTER: |
             # SSH into the EC2 instance and run the commands
-            ssh -i ${{ secrets.EC2_SSH_KEY }} ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }} "sudo su -c 'cd ${{ secrets.TARGET_DIR }} && \
-              docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && \
-              docker pull $DOCKER_USERNAME/$DOCKER_IMAGE_NAME && \
-              make start-${{ matrix.environment }}"
+            ssh -i ${{ secrets.EC2_SSH_KEY }} ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }} "sudo su -c '
+              cd ${{ secrets.TARGET_DIR }} &&
+              sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }} &&
+              sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }} &&
+              sudo make start-${{ matrix.environment }}'"
+
             
