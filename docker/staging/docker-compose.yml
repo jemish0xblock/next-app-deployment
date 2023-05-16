@@ -1,10 +1,10 @@
 version: '3'
 
 services:
-  with-docker-multi-env-staging:
+  next-app:
     build:
       context: ../../
       dockerfile: docker/staging/Dockerfile
-    image: with-docker-multi-env-staging
+    image: next-app-env-staging
     ports:
       - '3002:3000'

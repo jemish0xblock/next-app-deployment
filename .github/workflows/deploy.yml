@@ -1,0 +1,60 @@
+name: Docker Build and Publish
+on:
+  push:
+    branches:
+      - development
+      - staging
+      - production
+
+jobs:
+  deploy:
+    name: Docker Build and Publish
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ["16.x"]
+        environment: [development, staging, production]
+
+    steps:
+      - name: Check Secrets
+        run: |
+          required_secrets=("EC2_SSH_KEY" "DOCKER_USERNAME" "DOCKER_PASSWORD" "HOST_DNS" "USERNAME" "TARGET_DIR")
+          for secret_name in "${required_secrets[@]}"; do
+            if [ -z "${{ secrets[$secret_name] }}" ]; then
+              echo "Missing $secret_name secret."
+              exit 1
+            fi
+          done
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Build Docker Image
+        run: make build-${{ matrix.environment }}
+     
+      - name: Publish Docker Image
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_IMAGE_NAME: my-docker-image
+        run: |
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker tag $DOCKER_IMAGE_NAME $DOCKER_USERNAME/$DOCKER_IMAGE_NAME
+          docker push $DOCKER_USERNAME/$DOCKER_IMAGE_NAME
+
+      - name: Deploy to EC2
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          ARGS: "-rlgoDzvc -i --delete"
+          SOURCE: "docker/${{ matrix.environment }}/docker-compose.yml"
+          REMOTE_HOST: ${{ secrets.HOST_DNS }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
+          TARGET: ${{ secrets.TARGET_DIR }}
+          EXCLUDE: ""
+        with:
+          SCRIPT_AFTER: |
+            # SSH into the EC2 instance and run the make commands
+            ssh -i ${{ secrets.EC2_SSH_KEY }} ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }} "cd ${{ secrets.TARGET_DIR }} && make start-${{ matrix.environment }}"
