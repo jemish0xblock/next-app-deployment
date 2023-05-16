@@ -74,4 +74,4 @@ jobs:
         with:
           SCRIPT_AFTER: |
             # SSH into the EC2 instance and run the make commands
-            ssh -i ${{ secrets.EC2_SSH_KEY }} ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }} "cd ${{ secrets.TARGET_DIR }} && make start-${{ matrix.environment }}"
+            ssh -i ${{ secrets.EC2_SSH_KEY }} ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }} "cd ${{ secrets.TARGET_DIR }} && docker pull $DOCKER_USERNAME/$DOCKER_IMAGE_NAME && make start-${{ matrix.environment }}"
