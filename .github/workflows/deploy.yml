@@ -61,6 +61,15 @@ jobs:
           docker tag $DOCKER_IMAGE_NAME $DOCKER_USERNAME/$DOCKER_IMAGE_NAME
           docker push $DOCKER_USERNAME/$DOCKER_IMAGE_NAME
 
+      - name: Check SSH Connection
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "SSH connection successful!"
+
       - name: Deploy to EC2
         uses: easingthemes/ssh-deploy@main
         env:
