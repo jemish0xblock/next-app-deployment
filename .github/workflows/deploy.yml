@@ -18,13 +18,30 @@ jobs:
     steps:
       - name: Check Secrets
         run: |
-          required_secrets=("EC2_SSH_KEY" "DOCKER_USERNAME" "DOCKER_PASSWORD" "HOST_DNS" "USERNAME" "TARGET_DIR")
-          for secret_name in "${required_secrets[@]}"; do
-            if [ -z "${{ secrets[$secret_name] }}" ]; then
-              echo "Missing $secret_name secret."
-              exit 1
-            fi
-          done
+          if [ -z "${{ secrets.EC2_SSH_KEY }}" ]; then
+            echo "Missing EC2 SSH key secret."
+            exit 1
+          fi
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
+            echo "Missing Docker username secret."
+            exit 1
+          fi
+          if [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
+            echo "Missing Docker password secret."
+            exit 1
+          fi
+          if [ -z "${{ secrets.HOST_DNS }}" ]; then
+            echo "Missing host DNS secret."
+            exit 1
+          fi
+          if [ -z "${{ secrets.USERNAME }}" ]; then
+            echo "Missing username secret."
+            exit 1
+          fi
+          if [ -z "${{ secrets.TARGET_DIR }}" ]; then
+            echo "Missing target directory secret."
+            exit 1
+          fi
         env:
           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
 
